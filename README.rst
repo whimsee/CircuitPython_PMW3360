@@ -63,7 +63,7 @@ Usage Example
 .. code-block:: python
     
     import PMW3360
-    import board, time
+    import board
     from digitalio import DigitalInOut, Direction
 
     sensor = PMW3360.PMW3360(board.CLK, board.MOSI, board.MISO, board.D10)
