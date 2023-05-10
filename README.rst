@@ -61,7 +61,24 @@ Usage Example
 =============
 
 .. todo:: Add a quick, simple example. It and other examples should live in the
-examples folder and be included in docs/examples.rst.
+    examples folder and be included in docs/examples.rst.
+
+    import PMW3360
+    import board, time
+    from digitalio import DigitalInOut, Direction
+
+    sensor = PMW3360.PMW3360(board.CLK, board.MOSI, board.MISO, board.D10)
+
+    mt_pin = DigitalInOut(board.A0)
+    mt_pin.direction = Direction.INPUT
+
+    sensor.begin()
+    
+    while True:
+        if mt_pin.value == 0:
+        print(dx)
+        print(dy)
+        print("")
 
 Documentation
 =============
