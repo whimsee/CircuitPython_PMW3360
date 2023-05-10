@@ -60,9 +60,6 @@ Or the following command to update an existing version:
 Usage Example
 =============
 
-.. todo:: Add a quick, simple example. It and other examples should live in the
-    examples folder and be included in docs/examples.rst.
-
 .. code-block:: python
     import PMW3360
     import board, time
