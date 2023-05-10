@@ -61,6 +61,7 @@ Usage Example
 =============
 
 .. code-block:: python
+    
     import PMW3360
     import board, time
     from digitalio import DigitalInOut, Direction
