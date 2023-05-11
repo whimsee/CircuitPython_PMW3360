@@ -20,10 +20,7 @@ Introduction
 
 CircuitPython library for the PMW3360 motion sensor.
 
-Tested on KB2040 (RP2040) and Adafruit Feather M4 Express (SAMD51).
-
-Currently, the pystack is exhausted during import, but changing it to around 16500 works.
-
+Tested working on KB2040 (RP2040), Adafruit Feather M4 Express (SAMD51) and Adafruit ESP32-S3 Feather with 4MB Flash 2MB PSRAM (ESP32-S3).
 
 Dependencies
 =============
