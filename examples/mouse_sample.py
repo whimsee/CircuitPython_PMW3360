@@ -6,8 +6,11 @@ from adafruit_hid.mouse import Mouse
 
 mouse = Mouse(usb_hid.devices)
 
+# board.CLK may be board.SCK depending on the board
+# board.D10 is the cs pin
 sensor = PMW3360.PMW3360(board.CLK, board.MOSI, board.MISO, board.D10)
 
+# Any pin. Goes LOW if motion is detected.
 mt_pin = DigitalInOut(board.A0)
 mt_pin.direction = Direction.INPUT
 
