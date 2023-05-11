@@ -11,7 +11,7 @@ from digitalio import DigitalInOut, Direction
 # board.D10 is the cs pin
 sensor = PMW3360.PMW3360(board.SCK, board.MOSI, board.MISO, board.D10)
 
-# Any pin. Goes LOW if motion is detected.
+# Any pin. Goes LOW if motion is detected. More reliable.
 mt_pin = DigitalInOut(board.A0)
 mt_pin.direction = Direction.INPUT
 
