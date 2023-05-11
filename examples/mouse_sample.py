@@ -16,7 +16,9 @@ sensor.begin()
 def constrain(val, min_val, max_val):
     return min(max_val, max(min_val, val))
 
+# Normalizes value into a signed value
 def delta(value):
+    # Negative if MSB is 1
     if value & 0x8000:
         return -(~value & 0x7fff)
     else:
@@ -30,7 +32,6 @@ while True:
     # Limit values if needed
     # dx = constrain(delta(data["dx"]), -127, 127
     # dy = constrain(delta(data["dy"]), -127, 127)
-
 
     # uncomment if mt_pin isn't used 
     # if data["isOnSurface"] == True and data["isMotion"] and mt_pin.value == True:

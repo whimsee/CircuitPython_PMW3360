@@ -70,14 +70,6 @@ Usage Example
     import board
     from digitalio import DigitalInOut, Direction
 
-    # Normalizes the value into a signed value.
-    def delta(value):
-    # Negative if MSB is 1
-    if value & 0x8000:
-        return -(~value & 0x7fff)
-    else:
-        return value & 0x7fff
-    
     # board.SCK may be board.CLK depending on the board
     sensor = PMW3360.PMW3360(board.SCK, board.MOSI, board.MISO, board.D10)
 
@@ -87,19 +79,14 @@ Usage Example
 
     # Initalizes the sensor
     sensor.begin()
-    
+
     while True:
         # Captures a snapshot
         data = sensor.read_burst()
-
-        dx = delta(data["dx"])
-        dy = delta(data["dy"])
         
         # uncomment if mt_pin isn't used 
         # if data["is_on_surface"] == True and data["is_motion"] and mt_pin.value == True:
         if mt_pin.value == 0:
-            print(dx)
-            print(dy)
             print(data)
 
 Documentation
