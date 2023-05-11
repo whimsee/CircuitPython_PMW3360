@@ -34,7 +34,6 @@ while True:
     
     # uncomment if mt_pin isn't used 
     # if data["isOnSurface"] == True and data["isMotion"] and mt_pin.value == True:
-
     if mt_pin.value == 0:
     print(dx)
     print(dy)
