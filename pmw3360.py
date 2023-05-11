@@ -375,14 +375,16 @@ class PMW3360:
         self.in_burst = False
         self.last_burst = 0
         
+        # SPI Mode 3
         self.device = SPIDevice(self.spi, self.cs_pin, baudrate=8000000, polarity=1, phase=1)
     
     def begin(self, cpi=800):
-        self.write_reg(REG_Shutdown, 0xb6)
+        self.write_reg(REG_Shutdown, 0xb6) # Shutdown first
         self.delay_ms(300)
-#         self.delay_us(40)
-        self.write_reg(REG_Power_Up_Reset, 0x5a)
-#         self.delay_us(50)
+        # self.delay_us(40)
+        self.write_reg(REG_Power_Up_Reset, 0x5a)  # force reset
+        # self.delay_us(50)   # wait for it to reboot
+        # read registers 0x02 to 0x06 (and discard the data)
         self.read_reg(REG_Motion)
         self.read_reg(REG_Delta_X_L)
         self.read_reg(REG_Delta_X_H)
@@ -395,8 +397,6 @@ class PMW3360:
         
         # Set default CPI unless specified
         self.set_CPI(cpi)
-
-        return self.check_signature()
 
     def upload_firmware(self):
         # Write 0 to Rest_En bit of Config2 register to disable Rest mode.
@@ -411,11 +411,12 @@ class PMW3360:
         
         with self.device:
             self.spi.write(bytes([REG_SROM_Load_Burst | 0x80]))
-#             self.delay_us(15)
+            # self.delay_us(15)
             
+            # send all bytes of the firmware
             for count in range(4094):
                 self.spi.write(bytes(FIRMWARE_DATA[count]))
-#                 self.delay_us(15)
+                # self.delay_us(15)
         
         # Read the SROM_ID register to verify the ID before any other register reads or writes.
         self.read_reg(REG_SROM_ID)
@@ -433,7 +434,7 @@ class PMW3360:
         while self.get_CPI() != cpi:
             self.write_reg(REG_Config1, cpival)
               
-    
+    # CPI = (cpival + 1)*100
     def get_CPI(self):
         cpival = bytearray(1)
         cpival = self.read_reg(REG_Config1)
@@ -443,7 +444,7 @@ class PMW3360:
     def delay_ms(self, delaytime):
         time.sleep(delaytime / 1000)
     
-    # might not be necessary
+    # might not be necessary as the timings seem to work just fine without it
     def delay_us(self, delaytime):
         time.sleep(delaytime / 1000000)
         
@@ -455,8 +456,9 @@ class PMW3360:
         # send adress of the register, with MSBit = 1 to indicate it's a write 
             self.spi.write(bytes([reg_addr | 0x80]))
             self.spi.write(bytes([data]))
+            # self.delay_us(20)
         
-#         self.delay_us(100)
+        # self.delay_us(100) # tSWW/tSWR (=120us) minus tSCLK-NCS. Could be shortened, but is looks like a safe lower bound
 
     def read_reg(self, reg_addr):
         if reg_addr != REG_Motion_Burst:
@@ -465,22 +467,24 @@ class PMW3360:
         with self.device:
             # send adress of the register, with MSBit = 0 to indicate it's a read
             self.spi.write(bytes([reg_addr & 0x7f]))
-#             self.delay_us(100)
+            # self.delay_us(100) # tSRAD is 25, but 100us seems to be stable.
             result = bytearray(1)
             self.spi.readinto(result)
-#             self.delay_us(1)
+            # self.delay_us(1)
         
-#         self.delay_us(19)
+        # self.delay_us(19) # tSRW/tSRR (=20us) minus tSCLK-NCS
         return result
-
+    
+    # Originally returned at the end of begin()
+    # However it fails at SROM_ver (reads 0), but it seems to work fine
     def check_signature(self):
         pid = self.read_reg(REG_Product_ID)
         iv_pid = self.read_reg(REG_Inverse_Product_ID)
         SROM_ver = self.read_reg(REG_SROM_ID)
 
-#         print("pid", pid[0] == 66)
-#         print("iv_pid",  iv_pid[0] == 189)
-#         print("SROM_ver", SROM_ver, SROM_ver[0] == 4)
+        # print("pid", pid[0] == 66)
+        # print("iv_pid",  iv_pid[0] == 189)
+        # print("SROM_ver", SROM_ver, SROM_ver[0] == 4)
         return (pid[0] == 66 and iv_pid[0] == 189 and SROM_ver[0] == 4)
 
     def read_burst(self):
@@ -491,10 +495,11 @@ class PMW3360:
             self.in_burst = True
         
         with self.device:
-            self.spi.write(bytes([REG_Motion_Burst]))
-#             self.delay_us(35)
+            self.spi.write(bytes([REG_Motion_Burst])) 
+            # self.delay_us(35) # waits for tSRAD
             burst_buffer = bytearray(12)
-            self.spi.readinto(burst_buffer)
+            self.spi.readinto(burst_buffer) # read burst buffer
+            # self.delay_us(1) # tSCLK-NCS for read operation is 120ns
 
         # panic recovery, sometimes burst mode works weird
         if burst_buffer[0] and 0b111: 
@@ -505,44 +510,44 @@ class PMW3360:
         motion = (burst_buffer[0] & 0x80) != 0
         surface = (burst_buffer[0] & 0x08) == 0   # 0 if on surface / 1 if off surface
 
-        xl = burst_buffer[2]    # dx LSB
-        xh = burst_buffer[3]    # dx MSB
-        yl = burst_buffer[4]    # dy LSB
-        yh = burst_buffer[5]    # dy MSB
-        sl = burst_buffer[10]   # shutter LSB
-        sh = burst_buffer[11]   # shutter MSB
+        xl = burst_buffer[2]                      # dx LSB
+        xh = burst_buffer[3]                      # dx MSB
+        yl = burst_buffer[4]                      # dy LSB
+        yh = burst_buffer[5]                      # dy MSB
+        sl = burst_buffer[10]                     # shutter LSB
+        sh = burst_buffer[11]                     # shutter MSB
         
         x = xh << 8 | xl
         y = yh << 8 | yl
         shutter = sh << 8 | sl
 
         # public data (change values as needed)
-        self.isMotion = motion                   # True if a motion is detected. 
-        self.isOnSurface = surface               # True when a chip is on a surface 
-        self.dx = x                              # displacement on x directions. Unit: Count. (CPI * Count = Inch value)
-        self.dy = y                              # displacement on y directions.
-        self.SQUAL = burst_buffer[6]             # Surface Quality register, max 0x80. Number of features on the surface = SQUAL * 8
-        self.rawDataSum = burst_buffer[7]        # It reports the upper byte of an 18‐bit counter which sums all 1296 raw data in the current frame * Avg value = Raw_Data_Sum * 1024 / 1296
-        self.maxRawData = burst_buffer[8]        # Max raw data value in current frame, max=127
-        self.minRawData = burst_buffer[9]        # Min raw data value in current frame, max=127
-        self.shutter = shutter                   # unit: clock cycles of the internal oscillator. shutter is adjusted to keep the average raw data values within normal operating ranges.
+        is_motion = motion                        # True if a motion is detected. 
+        is_on_surface = surface                   # True when a chip is on a surface 
+        dx = x                                    # displacement on x directions. Unit: Count. (CPI * Count = Inch value)
+        dy = y                                    # displacement on y directions.
+        SQUAL = burst_buffer[6]                   # Surface Quality register, max 0x80. Number of features on the surface = SQUAL * 8
+        raw_data_sum = burst_buffer[7]            # It reports the upper byte of an 18‐bit counter which sums all 1296 raw data in the current frame * Avg value = Raw_Data_Sum * 1024 / 1296
+        max_raw_data = burst_buffer[8]            # Max raw data value in current frame, max=127
+        min_raw_data = burst_buffer[9]            # Min raw data value in current frame, max=127
+        shutter = shutter                         # unit: clock cycles of the internal oscillator. shutter is adjusted to keep the average raw data values within normal operating ranges.
 
         # create python dictionary and return it
         data = {
-            "isMotion" : self.isMotion,
-            "isOnSurface" : self.isOnSurface,
-            "dx" : self.dx,
-            "dy" : self.dy,
-            "SQUAL" : self.SQUAL,
-            "rawDataSum" : self.rawDataSum,
-            "maxRawData" : self.maxRawData,
-            "minRawData" : self.minRawData,
-            "shutter" : self.shutter
+            "is_motion" : is_motion,
+            "is_on_surface" : is_on_surface,
+            "dx" : dx,
+            "dy" : dy,
+            "SQUAL" : SQUAL,
+            "raw_data_sum" : raw_data_sum,
+            "max_raw_data" : max_raw_data,
+            "min_raw_data" : min_raw_data,
+            "shutter" : shutter
         }
 
         return data
 
-
+    # May be too slow to be useful when used with read_image_pixel
     def prepare_image(self):
         self.write_reg(REG_Config2, 0x00)
 
@@ -556,7 +561,8 @@ class PMW3360:
             self.spi.write(bytes([REG_Raw_Data_Burst & 0x7f]))
         
 #         self.delay_us(15)
-
+    
+    # May be too slow to be useful
     def read_image_pixel(self):
         with self.device:
             pixel = bytearray(1)
