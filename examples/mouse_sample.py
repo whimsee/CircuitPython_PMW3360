@@ -19,7 +19,7 @@ sensor.begin()
 def constrain(val, min_val, max_val):
     return min(max_val, max(min_val, val))
 
-# Normalizes value into a signed value
+# Convert 16-bit unsigned value into a signed value
 def delta(value):
     # Negative if MSB is 1
     if value & 0x8000:
