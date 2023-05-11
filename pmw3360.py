@@ -379,11 +379,11 @@ class PMW3360:
         self.device = SPIDevice(self.spi, self.cs_pin, baudrate=8000000, polarity=1, phase=1)
     
     def begin(self, cpi=800):
-        self.write_reg(REG_Shutdown, 0xb6) # Shutdown first
+        self.write_reg(REG_Shutdown, 0xb6)        # Shutdown first
         self.delay_ms(300)
         # self.delay_us(40)
         self.write_reg(REG_Power_Up_Reset, 0x5a)  # force reset
-        # self.delay_us(50)   # wait for it to reboot
+        # self.delay_us(50)                       # wait for it to reboot
         # read registers 0x02 to 0x06 (and discard the data)
         self.read_reg(REG_Motion)
         self.read_reg(REG_Delta_X_L)
@@ -560,7 +560,7 @@ class PMW3360:
         with self.device:
             self.spi.write(bytes([REG_Raw_Data_Burst & 0x7f]))
         
-#         self.delay_us(15)
+        # self.delay_us(15)
     
     # May be too slow to be useful
     def read_image_pixel(self):
@@ -568,7 +568,7 @@ class PMW3360:
             pixel = bytearray(1)
             self.spi.readinto(pixel)
     
-#         self.delay_us(20)
+        # self.delay_us(20)
 
         return pixel
 
