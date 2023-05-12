@@ -1,3 +1,8 @@
+# SPDX-FileCopyrightText: 2017 Scott Shawcroft, written for Adafruit Industries
+# SPDX-FileCopyrightText: Copyright (c) 2023 Jerico Tenmatay
+#
+# SPDX-License-Identifier: Unlicense
+
 import PMW3360
 import board, time
 from digitalio import DigitalInOut, Direction
