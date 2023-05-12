@@ -49,8 +49,3 @@ while True:
         print("")
 
         mouse.move(dx, dy)
-
-
-
-
-
