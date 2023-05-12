@@ -23,6 +23,6 @@ while True:
     data = sensor.read_burst()
     
     # uncomment if mt_pin isn't used 
-    # if data["is_on_surface"] == True and data["is_motion"] and mt_pin.value == True:
+    # if data["is_on_surface"] == True and data["is_motion"] == True:
     if mt_pin.value == 0:
         print(data)
