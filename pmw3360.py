@@ -433,6 +433,8 @@ class PMW3360:
         
         # Set default CPI unless specified
         self.set_CPI(cpi)
+        
+        return self.check_signature()
 
     def upload_firmware(self):
         # Write 0 to Rest_En bit of Config2 register to disable Rest mode.
@@ -451,29 +453,29 @@ class PMW3360:
             
             # send all bytes of the firmware            
             for count in range(345):
-                self.spi.write(bytes(FIRMWARE_DATA_1[count]))
+                self.spi.write(bytes([FIRMWARE_DATA_1[count]]))
             for count in range(345):
-                self.spi.write(bytes(FIRMWARE_DATA_2[count]))
+                self.spi.write(bytes([FIRMWARE_DATA_2[count]]))
             for count in range(345):
-                self.spi.write(bytes(FIRMWARE_DATA_3[count]))
+                self.spi.write(bytes([FIRMWARE_DATA_3[count]]))
             for count in range(345):
-                self.spi.write(bytes(FIRMWARE_DATA_4[count]))
+                self.spi.write(bytes([FIRMWARE_DATA_4[count]]))
             for count in range(345):
-                self.spi.write(bytes(FIRMWARE_DATA_5[count]))
+                self.spi.write(bytes([FIRMWARE_DATA_5[count]]))
             for count in range(345):
-                self.spi.write(bytes(FIRMWARE_DATA_6[count]))
+                self.spi.write(bytes([FIRMWARE_DATA_6[count]]))
             for count in range(345):
-                self.spi.write(bytes(FIRMWARE_DATA_7[count]))
+                self.spi.write(bytes([FIRMWARE_DATA_7[count]]))
             for count in range(345):
-                self.spi.write(bytes(FIRMWARE_DATA_8[count]))
+                self.spi.write(bytes([FIRMWARE_DATA_8[count]]))
             for count in range(345):
-                self.spi.write(bytes(FIRMWARE_DATA_9[count]))
+                self.spi.write(bytes([FIRMWARE_DATA_9[count]]))
             for count in range(315):
-                self.spi.write(bytes(FIRMWARE_DATA_10[count]))
+                self.spi.write(bytes([FIRMWARE_DATA_10[count]]))
             for count in range(330):
-                self.spi.write(bytes(FIRMWARE_DATA_11[count]))
+                self.spi.write(bytes([FIRMWARE_DATA_11[count]]))
             for count in range(344):
-                self.spi.write(bytes(FIRMWARE_DATA_12[count]))
+                self.spi.write(bytes([FIRMWARE_DATA_12[count]]))
                 # self.delay_us(15)
                 
         # Read the SROM_ID register to verify the ID before any other register reads or writes.
@@ -533,8 +535,6 @@ class PMW3360:
         # self.delay_us(19) # tSRW/tSRR (=20us) minus tSCLK-NCS
         return result
     
-    # Originally returned at the end of begin()
-    # However it fails at SROM_ver (reads 0), but it seems to work fine
     def check_signature(self):
         pid = self.read_reg(REG_Product_ID)
         iv_pid = self.read_reg(REG_Inverse_Product_ID)

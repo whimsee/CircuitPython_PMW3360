@@ -76,7 +76,10 @@ Usage Example
     mt_pin.direction = Direction.INPUT
 
     # Initalizes the sensor
-    sensor.begin()
+    if sensor.begin():
+        print("sensor ready")
+    else:
+        print("firmware upload failed")
 
     while True:
         # Captures a snapshot
