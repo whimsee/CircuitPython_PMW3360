@@ -436,6 +436,7 @@ class PMW3360:
         
         return self.check_signature()
 
+    # For some reason, the sensor still works as a regular mouse even if the firmware is not uploaded
     def upload_firmware(self):
         # Write 0 to Rest_En bit of Config2 register to disable Rest mode.
         self.write_reg(REG_Config2, 0x00)
