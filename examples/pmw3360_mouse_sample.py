@@ -19,7 +19,12 @@ sensor = PMW3360.PMW3360(board.CLK, board.MOSI, board.MISO, board.D10)
 mt_pin = DigitalInOut(board.A0)
 mt_pin.direction = Direction.INPUT
 
+# Initialize sensor. You can specify CPI as an argument. Default CPI is 800.
 sensor.begin()
+
+# Setting and getting CPI values
+set_CPI(1200)
+print(get_CPI())
 
 def constrain(val, min_val, max_val):
     return min(max_val, max(min_val, val))
