@@ -7,7 +7,7 @@
 ================================================================================
 
 CircuitPython library for the PMW3360 motion sensor.
-Translated from Arduino PMW3360 Module Library by SunjunKim
+Port of Arduino PMW3360 Module Library by SunjunKim
 
 * Author(s): Jerico Tenmatay
 

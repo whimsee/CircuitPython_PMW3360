@@ -19,6 +19,7 @@ Introduction
     :alt: Code Style: Black
 
 CircuitPython library for the PMW3360 motion sensor.
+Port of Arduino PMW3360 Module Library by SunjunKim.
 
 Tested working on KB2040 (RP2040), Adafruit Feather M4 Express (SAMD51) and Adafruit ESP32-S3 Feather with 4MB Flash 2MB PSRAM (ESP32-S3).
 
@@ -80,6 +81,10 @@ Usage Example
         print("sensor ready")
     else:
         print("firmware upload failed")
+    
+    # Setting and getting CPI values. Default is 800.
+    set_CPI(1200)
+    print(get_CPI())
 
     while True:
         # Captures a snapshot

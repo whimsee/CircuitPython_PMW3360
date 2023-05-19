@@ -20,6 +20,10 @@ if sensor.begin():
     print("sensor ready")
 else:
     print("firmware upload failed")
+    
+# Setting and getting CPI values. Default is 800.
+set_CPI(1200)
+print(get_CPI())
 
 while True:
     # Captures a snapshot
