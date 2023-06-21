@@ -83,8 +83,8 @@ Usage Example
         print("firmware upload failed")
     
     # Setting and getting CPI values. Default is 800.
-    set_CPI(1200)
-    print(get_CPI())
+    sensor.set_CPI(1200)
+    print(sensor.get_CPI())
 
     while True:
         # Captures a snapshot
