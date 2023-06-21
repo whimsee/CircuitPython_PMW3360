@@ -3,8 +3,8 @@
 #
 # SPDX-License-Identifier: Unlicense
 
-import PMW3360
 import board
+import PMW3360
 from digitalio import DigitalInOut, Direction
 
 # board.SCK may be board.CLK depending on the board
@@ -20,16 +20,16 @@ if sensor.begin():
     print("sensor ready")
 else:
     print("firmware upload failed")
-    
+
 # Setting and getting CPI values. Default is 800.
-set_CPI(1200)
-print(get_CPI())
+sensor.set_CPI(1200)
+print(sensor.get_CPI())
 
 while True:
     # Captures a snapshot
     data = sensor.read_burst()
-    
-    # uncomment if mt_pin isn't used 
+
+    # uncomment if mt_pin isn't used
     # if data["is_on_surface"] == True and data["is_motion"] == True:
     if mt_pin.value == 0:
         print(data)

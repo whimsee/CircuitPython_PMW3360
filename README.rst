@@ -63,7 +63,7 @@ Usage Example
 =============
 
 .. code-block:: python
-    
+
     import PMW3360
     import board
     from digitalio import DigitalInOut, Direction
@@ -81,7 +81,7 @@ Usage Example
         print("sensor ready")
     else:
         print("firmware upload failed")
-    
+
     # Setting and getting CPI values. Default is 800.
     sensor.set_CPI(1200)
     print(sensor.get_CPI())
@@ -89,8 +89,8 @@ Usage Example
     while True:
         # Captures a snapshot
         data = sensor.read_burst()
-        
-        # uncomment if mt_pin isn't used 
+
+        # uncomment if mt_pin isn't used
         # if data["is_on_surface"] == True and data["is_motion"] == True:
         if mt_pin.value == 0:
             print(data)

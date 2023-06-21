@@ -29,8 +29,8 @@ extensions = [
 
 
 intersphinx_mapping = {
-    "python": ("https://docs.python.org/3", None),"BusDevice": ("https://docs.circuitpython.org/projects/busdevice/en/latest/", None),
-    
+    "python": ("https://docs.python.org/3", None),
+    "BusDevice": ("https://docs.circuitpython.org/projects/busdevice/en/latest/", None),
     "CircuitPython": ("https://docs.circuitpython.org/en/latest/", None),
 }
 

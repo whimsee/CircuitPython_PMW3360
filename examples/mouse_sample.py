@@ -3,8 +3,8 @@
 #
 # SPDX-License-Identifier: Unlicense
 
+import board
 import PMW3360
-import board, time
 from digitalio import DigitalInOut, Direction
 import usb_hid
 from adafruit_hid.mouse import Mouse
@@ -26,27 +26,30 @@ sensor.begin()
 sensor.set_CPI(1200)
 print(sensor.get_CPI())
 
+
 def constrain(val, min_val, max_val):
     return min(max_val, max(min_val, val))
+
 
 # Convert 16-bit unsigned value into a signed value
 def delta(value):
     # Negative if MSB is 1
     if value & 0x8000:
-        return -(~value & 0x7fff)
-    else:
-        return value & 0x7fff
+        return -(~value & 0x7FFF)
+
+    return value & 0x7FFF
+
 
 while True:
     data = sensor.read_burst()
     dx = delta(data["dx"])
     dy = delta(data["dy"])
-    
+
     # Limit values if needed
     # dx = constrain(delta(data["dx"]), -127, 127
     # dy = constrain(delta(data["dy"]), -127, 127)
 
-    # uncomment if mt_pin isn't used 
+    # uncomment if mt_pin isn't used
     # if data["isOnSurface"] == True and data["isMotion"] and mt_pin.value == True:
     if mt_pin.value == 0:
         print(dx)
