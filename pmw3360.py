@@ -88,7 +88,7 @@ _REG_Lift_Config                          = const(0x63)
 _REG_Raw_Data_Burst                       = const(0x64)
 _REG_LiftCutoff_Tune2                     = const(0x65)
 
-# Break up firmware data to not exhaust the pystack
+# firmware data broken up to not exhaust the pystack
 _FIRMWARE_DATA_1 = bytearray(
     b"\x01\x04\x8e\x96\x6e\x77\x3e\xfe\x7e\x5f\x1d\xb8\xf2\x66\x4e"
     b"\xff\x5d\x19\xb0\xc2\x04\x69\x54\x2a\xd6\x2e\xbf\xdd\x19\xb0"
@@ -406,7 +406,8 @@ _FIRMWARE_DATA = (
 )
 
 class PMW3360:
-    def __init__(self, sck, mosi, miso, cs):
+    def __init__(self, sck, mosi, miso, cs) -> None:
+        """Initiate SPI pins, and set burst variables"""
         self.spi = busio.SPI(sck, mosi, miso)
         self.cs_pin = DigitalInOut(cs)
 
@@ -417,10 +418,14 @@ class PMW3360:
         self.device = SPIDevice(self.spi, self.cs_pin, baudrate=8000000, polarity=1, phase=1)
     
     def begin(self, cpi=800):
-        self.write_reg(_REG_Shutdown, 0xb6)        # Shutdown first
+        # Shutdown first
+        self.write_reg(_REG_Shutdown, 0xb6)        
         self.delay_ms(300)
-        self.write_reg(_REG_Power_Up_Reset, 0x5a)  # force reset
-        # read registers 0x02 to 0x06 (and discard the data)
+        
+        # Force reset
+        self.write_reg(_REG_Power_Up_Reset, 0x5a)
+        
+        # Read registers 0x02 to 0x06 (and discard the data)
         self.read_reg(_REG_Motion)
         self.read_reg(_REG_Delta_X_L)
         self.read_reg(_REG_Delta_X_H)
@@ -436,16 +441,17 @@ class PMW3360:
         
         return self.check_signature()
 
-    # For some reason, the sensor still works as a regular mouse even if the firmware is not uploaded
     def upload_firmware(self):
+        """The sensor still works as a regular mouse
+        even if the firmware is not uploaded."""
         # Write 0 to Rest_En bit of Config2 register to disable Rest mode.
         self.write_reg(_REG_Config2, 0x00)
-        # write 0x1d in SROM_enable reg for initializing
+        # Write 0x1d in SROM_enable reg for initializing
         self.write_reg(_REG_SROM_Enable, 0x1d)
-        # wait for more than one frame period.
+        # Wait for more than one frame period.
         # Assume that the frame rate is as low as 100fps... even if it should never be that low
         self.delay_ms(10)
-        # write 0x18 to SROM_enable to start SROM download
+        # Write 0x18 to SROM_enable to start SROM download
         self.write_reg(_REG_SROM_Enable, 0x18)
         
         with self.device as spi:
@@ -460,24 +466,23 @@ class PMW3360:
         # Write 0x00 (rest disable) to Config2 register for wired mouse or 0x20 for wireless mouse design. 
         self.write_reg(_REG_Config2, 0x00)
 
-    def constrain(self, val, min_val, max_val):
+    def constrain(self, val, min_val, max_val) -> int:
         return min(max_val, max(min_val, val))
 
-    def set_CPI(self, cpi):
-        # limits to 0--119 
-        cpival = int(self.constrain((cpi/100)-1, 0, 119))
-        
-        # Sometimes doesn't work the first time around so keep sending until it does
-        while self.get_CPI() != cpi:
-            self.write_reg(_REG_Config1, cpival)
-              
-    # CPI = (cpival + 1)*100
-    def get_CPI(self):
+    def get_CPI(self) -> int:
+        """CPI = (cpival + 1)*100"""
         cpival = bytearray(1)
         cpival = self.read_reg(_REG_Config1)
 
         return (int(cpival[0]) + 1) * 100
-
+    
+    def set_CPI(self, cpi) -> None:
+        cpival = int(self.constrain((cpi/100)-1, 0, 119))
+        
+        # Sometimes doesn't work the first time around. Keep sending until it does.
+        while self.get_CPI() != cpi:
+            self.write_reg(_REG_Config1, cpival)
+              
     def delay_ms(self, delaytime):
         time.sleep(delaytime / 1000)
         
@@ -486,7 +491,7 @@ class PMW3360:
             self.in_burst = False
         
         with self.device as spi:
-        # send adress of the register, with MSBit = 1 to indicate it's a write 
+        # Send address of the register, with MSBit = 1 to indicate it's a write
             spi.write(bytes([reg_addr | 0x80]))
             spi.write(bytes([data]))
 
@@ -495,7 +500,7 @@ class PMW3360:
             self.in_burst = False
 
         with self.device as spi:
-            # send address of the register, with MSBit = 0 to indicate it's a read
+            # Send address of the register, with MSBit = 0 to indicate it's a read
             spi.write(bytes([reg_addr & 0x7f]))
             result = bytearray(1)
             spi.readinto(result)
@@ -507,9 +512,6 @@ class PMW3360:
         iv_pid = self.read_reg(_REG_Inverse_Product_ID)
         SROM_ver = self.read_reg(_REG_SROM_ID)
 
-        # print("pid", pid[0] == 66)
-        # print("iv_pid",  iv_pid[0] == 189)
-        # print("SROM_ver", SROM_ver, SROM_ver[0] == 4)
         return (pid[0] == 66 and iv_pid[0] == 189 and SROM_ver[0] == 4)
 
     def read_burst(self):
@@ -522,9 +524,10 @@ class PMW3360:
         with self.device as spi:
             spi.write(bytes([_REG_Motion_Burst])) 
             burst_buffer = bytearray(12)
-            spi.readinto(burst_buffer) # read burst buffer
+            # Read burst buffer
+            spi.readinto(burst_buffer) 
 
-        # panic recovery, sometimes burst mode works weird
+        # Panic recovery, sometimes burst mode works weird
         if burst_buffer[0] and 0b111: 
             self.in_burst = False
 
@@ -544,7 +547,6 @@ class PMW3360:
         y = yh << 8 | yl
         shutter = sh << 8 | sl
 
-        # public data (change values as needed)
         is_motion = motion                        # True if a motion is detected. 
         is_on_surface = surface                   # True when a chip is on a surface 
         dx = x                                    # displacement on x directions. Unit: Count. (CPI * Count = Inch value)
@@ -555,7 +557,7 @@ class PMW3360:
         min_raw_data = burst_buffer[9]            # Min raw data value in current frame, max=127
         shutter = shutter                         # unit: clock cycles of the internal oscillator. shutter is adjusted to keep the average raw data values within normal operating ranges.
 
-        # create python dictionary and return it
+        # Create dictionary and return it
         data = {
             "is_motion" : is_motion,
             "is_on_surface" : is_on_surface,
@@ -570,8 +572,8 @@ class PMW3360:
 
         return data
 
-    # May be too slow to be useful when used with read_image_pixel
     def prepare_image(self):
+        """Unused. May be too slow to be useful when used with read_image_pixel"""
         self.write_reg(_REG_Config2, 0x00)
 
         self.write_reg(_REG_Frame_Capture, 0x83)
@@ -579,16 +581,15 @@ class PMW3360:
 
         self.delay_ms(20)
         
-        # write burst destination adress
+        # Write burst destination adress
         with self.device as spi:
             spi.write(bytes([_REG_Raw_Data_Burst & 0x7f]))
     
-    # May be too slow to be useful
     def read_image_pixel(self):
+        """Unused. May be too slow to be useful"""
         with self.device as spi:
             pixel = bytearray(1)
             spi.readinto(pixel)
-
 
         return pixel
 

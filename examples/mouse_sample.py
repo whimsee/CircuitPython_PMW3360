@@ -23,8 +23,8 @@ mt_pin.direction = Direction.INPUT
 sensor.begin()
 
 # Setting and getting CPI values
-set_CPI(1200)
-print(get_CPI())
+sensor.set_CPI(1200)
+print(sensor.get_CPI())
 
 def constrain(val, min_val, max_val):
     return min(max_val, max(min_val, val))
